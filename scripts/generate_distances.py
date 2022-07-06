@@ -1,11 +1,11 @@
 from math import dist
 import openpyxl
-from cell import Cell
-from cell import Family
+from cell import Cell, Family
 import pandas as pd 
 
 PATH_DATA = "Neuroscience_data_analysis\data\PNN_Microglia_distance.xlsx"
 SHEET = 's512 B2 centered (1) detection '
+MAX_DISTANCE = 50
 
 wb = openpyxl.load_workbook(PATH_DATA)
 
@@ -14,25 +14,26 @@ def generate_distances(worksheet_name, sorted_cells, type):
     wb.active = sheet
     micro_list = sorted_cells[type]['microglia_cells_list']
     pnn_list = sorted_cells[type]['pnn_cells_list']
-    # Naming headers
-    col=2
-    for microglia_cell in micro_list:
-        sheet.cell(row=1,column=col).value=microglia_cell.id
-        col += 1
-    row=2
-    for pnn_cell in pnn_list:
-        sheet.cell(row=row,column=1).value=pnn_cell.id
-        row += 1
-
+    sheet.delete_cols(1,200)
+    sheet.delete_rows(1,200)
+    sheet.cell(row=1, column=1).value="Microglia"
+    sheet.cell(row=1, column=2).value="PNN"
+    sheet.cell(row=1, column=3).value="Distance"
+    row = 2
     distances = []
     # Calulating distances
-    for  r_index, microglia_cell in enumerate(micro_list):
-        for  w_index, pnn_cell in enumerate(pnn_list):
+    for microglia_cell in micro_list:
+        for pnn_cell in pnn_list:
             point_microglia = [microglia_cell.position_x, microglia_cell.position_y]
             point_pnn = [pnn_cell.position_x, pnn_cell.position_y]
             distance = dist(point_microglia, point_pnn)
-            sheet.cell(row=w_index+2, column=r_index+2).value=distance
-            distances.append(distance)
+            if distance <= MAX_DISTANCE:
+                sheet.cell(row=row, column=1).value=microglia_cell.id
+                sheet.cell(row=row, column=2).value=pnn_cell.id
+                sheet.cell(row=row, column=3).value=distance
+                distances.append(distance)
+                row += 1
+
     return pd.Series(data=distances)
             
 sheet1 = wb[SHEET]
