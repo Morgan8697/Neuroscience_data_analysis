@@ -3,8 +3,8 @@ import openpyxl
 from cell import Cell, Family
 import pandas as pd 
 
-PATH_DATA = "Neuroscience_data_analysis\data\PNN_Microglia_data.xlsx"
-PATH_RESULTS = "Neuroscience_data_analysis\data\PNN_Microglia_results.xlsx"
+PATH_DATA = "data\PNN Microglia distance.xlsx"
+PATH_RESULTS = "data\PNN_Microglia_results.xlsx"
 SHEET = 's512 B2 centered (1) detection '
 MAX_DISTANCE = 50
 
@@ -16,8 +16,8 @@ def generate_distances(worksheet_name, sorted_cells, type):
     wb_results.active = sheet
     micro_list = sorted_cells[type]['microglia_cells_list']
     pnn_list = sorted_cells[type]['pnn_cells_list']
-    sheet.delete_cols(1,200)
-    sheet.delete_rows(1,200)
+    sheet.delete_cols(1,30)
+    sheet.delete_rows(1,2000)
     sheet.cell(row=1, column=1).value="Microglia"
     sheet.cell(row=1, column=2).value="PNN"
     sheet.cell(row=1, column=3).value="Distance"
@@ -35,13 +35,10 @@ def generate_distances(worksheet_name, sorted_cells, type):
                 sheet.cell(row=row, column=3).value=distance
                 distances.append(distance)
                 row += 1
-    wb_results.save(PATH_DATA)
+    wb_results.save(PATH_RESULTS)
     return pd.Series(data=distances)
             
-sheet1 = wb_data[SHEET]
-wb_data.active = sheet1
-row_count = sheet1.max_row
-col_count = sheet1.max_column
+
 
 sorted_cells = {
     'L1_2' : {
@@ -66,22 +63,26 @@ sorted_cells = {
         }
 }
 # Initializing Cells
-for i in range(2, row_count + 1):
-    curr_name = sheet1.cell(row=i, column=1).value
-    curr_type = curr_name.split(' - ')[1]
-    curr_family = Family.MICROGLIA
-    if "PNN" in curr_name:
-        curr_family = Family.PNN
-    curr_x = sheet1.cell(row=i, column=2).value
-    curr_y = sheet1.cell(row=i, column=3).value
-    if curr_family == Family.MICROGLIA:
-        curr_id = "Microglia #" + str(i)
-        curr_cell = Cell(curr_id, curr_x, curr_y, curr_family, curr_type)
-        sorted_cells[curr_type]['microglia_cells_list'].append(curr_cell)
-    else:
-        curr_id = "PNN #" + str(i)
-        curr_cell = Cell(curr_id, curr_x, curr_y, curr_family, curr_type)
-        sorted_cells[curr_type]['pnn_cells_list'].append(curr_cell)
+for sheet in wb_data.worksheets:
+    wb_data.active = sheet
+    row_count = sheet.max_row
+    col_count = sheet.max_column
+    for i in range(2, row_count + 1):
+        curr_name = sheet.cell(row=i, column=1).value
+        curr_type = curr_name.split(' - ')[1]
+        curr_family = Family.MICROGLIA
+        if "PNN" in curr_name:
+            curr_family = Family.PNN
+        curr_x = sheet.cell(row=i, column=2).value
+        curr_y = sheet.cell(row=i, column=3).value
+        if curr_family == Family.MICROGLIA:
+            curr_id = "Microglia #" + str(i)
+            curr_cell = Cell(curr_id, curr_x, curr_y, curr_family, curr_type)
+            sorted_cells[curr_type]['microglia_cells_list'].append(curr_cell)
+        else:
+            curr_id = "PNN #" + str(i)
+            curr_cell = Cell(curr_id, curr_x, curr_y, curr_family, curr_type)
+            sorted_cells[curr_type]['pnn_cells_list'].append(curr_cell)
 
 # Sort seriess
     
@@ -98,4 +99,3 @@ print("----------\nL4\nAverage: " + str(L4_series.mean()) + "\nMedian: " + str(L
 print("----------\nL5\nAverage: " + str(L5_series.mean()) + "\nMedian: " + str(L5_series.median()) + "\nStandard deviation: " + str(L5_series.std()))
 print("----------\nL6\nAverage: " + str(L6_series.mean()) + "\nMedian: " + str(L6_series.median()) + "\nStandard deviation: " + str(L6_series.std()))
 
-    
