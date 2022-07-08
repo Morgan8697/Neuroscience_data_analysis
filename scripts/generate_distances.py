@@ -3,15 +3,17 @@ import openpyxl
 from cell import Cell, Family
 import pandas as pd 
 
-PATH_DATA = "Neuroscience_data_analysis\data\PNN_Microglia_distance.xlsx"
+PATH_DATA = "Neuroscience_data_analysis\data\PNN_Microglia_data.xlsx"
+PATH_RESULTS = "Neuroscience_data_analysis\data\PNN_Microglia_results.xlsx"
 SHEET = 's512 B2 centered (1) detection '
 MAX_DISTANCE = 50
 
-wb = openpyxl.load_workbook(PATH_DATA)
+wb_data = openpyxl.load_workbook(PATH_DATA)
 
 def generate_distances(worksheet_name, sorted_cells, type):
-    sheet = wb[worksheet_name]
-    wb.active = sheet
+    wb_results = openpyxl.load_workbook(PATH_RESULTS)
+    sheet = wb_results[worksheet_name]
+    wb_results.active = sheet
     micro_list = sorted_cells[type]['microglia_cells_list']
     pnn_list = sorted_cells[type]['pnn_cells_list']
     sheet.delete_cols(1,200)
@@ -33,11 +35,11 @@ def generate_distances(worksheet_name, sorted_cells, type):
                 sheet.cell(row=row, column=3).value=distance
                 distances.append(distance)
                 row += 1
-
+    wb_results.save(PATH_DATA)
     return pd.Series(data=distances)
             
-sheet1 = wb[SHEET]
-wb.active = sheet1
+sheet1 = wb_data[SHEET]
+wb_data.active = sheet1
 row_count = sheet1.max_row
 col_count = sheet1.max_column
 
@@ -95,7 +97,5 @@ print("----------\nL3\nAverage: " + str(L3_series.mean()) + "\nMedian: " + str(L
 print("----------\nL4\nAverage: " + str(L4_series.mean()) + "\nMedian: " + str(L4_series.median()) + "\nStandard deviation: " + str(L4_series.std()))
 print("----------\nL5\nAverage: " + str(L5_series.mean()) + "\nMedian: " + str(L5_series.median()) + "\nStandard deviation: " + str(L5_series.std()))
 print("----------\nL6\nAverage: " + str(L6_series.mean()) + "\nMedian: " + str(L6_series.median()) + "\nStandard deviation: " + str(L6_series.std()))
-
-wb.save(PATH_DATA)
 
     
